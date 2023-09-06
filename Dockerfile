@@ -1,20 +1,40 @@
-Use an official Node.js runtime as the base image
-FROM node:14
+FROM mhart/alpine-node:12 as development
 
-Set the working directory in the container
-WORKDIR /app
+# Create app directory
+WORKDIR /usr/src/app
 
-Copy package.json and package-lock.json to the container
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
 COPY package*.json ./
 
-Install application dependencies
 RUN npm install
 
-Copy the rest of the application code to the container
+# Bundle app source
 COPY . .
 
-Expose a port (if your application listens on a specific port)
 EXPOSE 8080
+CMD [ "node", "server.js" ]
 
-Define the command to run your application
-CMD ["npm", "start"]
+FROM mhart/alpine-node:12 as test
+WORKDIR /usr/src/app
+COPY --from=development /usr/src/app/ .
+RUN ["npm", "run", "test"]
+
+
+FROM mhart/alpine-node:12 as production
+
+# Create app directory
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm ci --only=production
+# If you are building your code for production
+# RUN npm ci --only=production
+
+# Bundle app source
+COPY . .
+
+EXPOSE 8080
+CMD [ "node", "server.js" ]
