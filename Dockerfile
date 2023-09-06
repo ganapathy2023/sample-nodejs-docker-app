@@ -14,7 +14,7 @@ Copy the rest of the application code to the container
 COPY . .
 
 Expose a port (if your application listens on a specific port)
-EXPOSE 3000
+EXPOSE 8080
 
 Define the command to run your application
 CMD ["npm", "start"]
